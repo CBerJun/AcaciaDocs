@@ -18,7 +18,7 @@ Acacia 就是一门这样的语言。把 Acacia 代码转换为命令的程序�
 
 同样的东西用命令写就会变成:
 
-.. code-block:: text
+.. code-block:: mcfunction
 
     scoreboard players operation answer s = x s
     scoreboard players operation  s += y s
@@ -38,4 +38,3 @@ Acacia 就是一门这样的语言。把 Acacia 代码转换为命令的程序�
         * 让项目结构更加清晰，大幅减少文件和代码量: 提供分支、循环、函数、结构体
 
 总的来说，使用 Acacia 相比用指令开发效率高，项目也更便于维护，且不需要命令基础即可学习。
-
