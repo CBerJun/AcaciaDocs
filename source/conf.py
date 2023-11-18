@@ -3,6 +3,7 @@
 import os
 import sys
 sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath("_extensions"))
 
 from sphinx.highlighting import lexers
 from acacia_lexer import AcaciaLexer
@@ -20,7 +21,7 @@ language = "zh_CN"
 
 # -- General configuration
 
-extensions = []
+extensions = ["acaciaext"]
 source_suffix = '.rst'
 
 lexers["acacia"] = AcaciaLexer()
