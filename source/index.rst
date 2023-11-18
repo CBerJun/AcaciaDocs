@@ -35,4 +35,4 @@ Acacia 文档
     :maxdepth: 2
 
     tutorial/index.rst
-
+    language/index.rst
