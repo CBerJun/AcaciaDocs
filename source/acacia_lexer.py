@@ -144,10 +144,35 @@ class AcaciaLexer(RegexLexer):
             default("#pop"),
         ],
         "escape": [
+            (r"\\#\(", String.Escape, "font_escape"),
             (
-                r'\\([\\n"]|u[a-fA-F0-9]{4}|'
+                r'\\([\\n"#]|u[a-fA-F0-9]{4}|'
                 r"U[a-fA-F0-9]{8}|x[a-fA-F0-9]{2})",
                 String.Escape,
             )
+        ],
+        "font_escape": [
+            (r"\)", String.Escape, "#pop"),
+            (r",", Punctuation),
+            (r"\s+", Whitespace),
+            (
+                words(
+                    (
+                        'reset', 'bold', 'italic', 'obfuscated',
+                        'black', 'dark_blue', 'dark_green', 'dark_aqua',
+                        'dark_red', 'dark_purple', 'gold', 'gray', 'dark_gray',
+                        'blue', 'green', 'aqua', 'red', 'light_purple',
+                        'yellow', 'white', 'minecoin_gold',
+                        'material_quartz', 'material_iron',
+                        'material_netherite', 'material_redstone',
+                        'material_copper', 'material_gold',
+                        'material_emerald', 'material_diamond',
+                        'material_lapis', 'material_amethyst'
+                    ),
+                    suffix=r"\b"
+                ),
+                Name.Builtin.Pseudo
+            ),
+            (r"\w+", Name)
         ]
     }

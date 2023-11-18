@@ -26,6 +26,7 @@ Acacia 文档
     "\u00a7"
     "%0aa%{1}1%{kw}%%"
         /say aaa ${xxx}
+    "\#(green, bold)"
 
 文档大纲
 --------
