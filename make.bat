@@ -7,6 +7,9 @@ REM Command file for Sphinx documentation
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
+if "%PYTHON%" == "" (
+	set PYTHON=python
+)
 set SOURCEDIR=source
 set BUILDDIR=build
 
@@ -25,6 +28,7 @@ if errorlevel 9009 (
 	exit /b 1
 )
 
+%PYTHON% babel_runner.py compile
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
 goto end
 
