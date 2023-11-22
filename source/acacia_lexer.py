@@ -116,40 +116,36 @@ class AcaciaLexer(RegexLexer):
             (r"\}", Punctuation, "#pop"),
             include("root"),
         ],
-        "command": [
-            include("escape"),
-            (r"\\\$", String.Escape),
-            (r"\$\{", String.Interpol, "formatted_expr"),
-        ],
         "single_command": [
-            include("command"),
+            include("escape_fexpr"),
             (r"\n", Whitespace, "#pop"),
             (r"[^\n\$\\]+", String),
             (r"[\$\\]", String),
         ],
         "multi_command": [
-            include("command"),
+            include("escape_fexpr"),
             (r"\n", Whitespace),
             (r"\*/", Punctuation, "#pop"),
             (r"[^\n\$\\\*]+", String),
             (r"[\$\\\*]", String),
         ],
         "string": [
-            include("escape"),
+            include("escape_fexpr"),
             (r'"', String.Double, "#pop"),
             (r"%%", String.Escape),
             (r"%%(\d|\{(\d+|%s)\})" % _identifier, String.Interpol),
-            (r'[^"\n\\%]+', String.Double),
-            (r"[\\%]", String.Double),
+            (r'[^"\n\\%\$]+', String.Double),
+            (r"[\\%\$]", String.Double),
             default("#pop"),
         ],
-        "escape": [
+        "escape_fexpr": [
             (r"\\#\(", String.Escape, "font_escape"),
             (
-                r'\\([\\n"#]|u[a-fA-F0-9]{4}|'
+                r'\\([\\n#$]|u[a-fA-F0-9]{4}|'
                 r"U[a-fA-F0-9]{8}|x[a-fA-F0-9]{2})",
                 String.Escape,
-            )
+            ),
+            (r"\$\{", String.Interpol, "formatted_expr"),
         ],
         "font_escape": [
             (r"\)", String.Escape, "#pop"),
