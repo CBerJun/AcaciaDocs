@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-11-18 13:12-0500\n"
+"POT-Creation-Date: 2023-11-25 08:13-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_CN\n"
@@ -19,12 +19,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: source/_extensions/acaciaext/__init__.py:16
-msgid "www"
-msgstr "zh"
-
-#: source/_extensions/acaciaext/__init__.py:21
+#: source/_extensions/acaciaext/__init__.py:24
 #, python-format
 msgid "MCWiki: %s"
 msgstr "MC维基: %s"
+
+#: source/_extensions/acaciaext/__init__.py:25
+msgid "www"
+msgstr "zh"
 

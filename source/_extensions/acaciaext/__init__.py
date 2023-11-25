@@ -13,14 +13,18 @@ _ = get_translation(I18N_CATALOG)
 
 class MCWikiRole(ReferenceRole):
     def run(self) -> Tuple[List["Node"], List["system_message"]]:
-        refuri = "https://%s.minecraft.wiki/w/%s" % (_("www"), self.target)
-        reference = nodes.reference('', '', internal=False, refuri=refuri)
+        target = self.target
         if self.has_explicit_title:
-            reference += nodes.strong(self.title, self.title)
+            title = self.title
         else:
-            title = _("MCWiki: %s") % self.title
-            reference += nodes.strong(title, title)
-        print(refuri)
+            if self.target.startswith("~"):
+                target = self.target[1:]
+                title = target
+            else:
+                title = _("MCWiki: %s") % target
+        refuri = "https://%s.minecraft.wiki/w/%s" % (_("www"), target)
+        reference = nodes.reference('', '', internal=False, refuri=refuri)
+        reference += nodes.strong(title, title)
         return [reference], []
 
 def setup(app: "Sphinx"):
