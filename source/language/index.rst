@@ -8,3 +8,4 @@
 
     intro.rst
     parser.rst
+    compnrun.rst
