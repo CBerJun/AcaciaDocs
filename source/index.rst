@@ -13,8 +13,6 @@ Acacia 文档
 
     if_
     else
-    @aaa:
-        @type:
     0x111ffg
     /*
     aa ${
@@ -27,6 +25,18 @@ Acacia 文档
     "%0aa%{1}1%{kw}%%"
         /say aaa ${xxx}
     "\#(green, bold)"
+    "numbers 1 2 3 :="
+    deff
+    entity foo o o
+    lint
+    interface spam/ham:
+    interface aaa11-bb_1.2()
+    interface "xxx":
+    interface if:
+    interface222
+    swap(1)
+    Alice and Bob
+    or xor
 
 文档大纲
 --------

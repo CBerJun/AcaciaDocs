@@ -4,13 +4,15 @@ __all__ = ["AcaciaLexer"]
 
 from pygments.lexer import RegexLexer, include, words, default, bygroups
 from pygments.token import *
+from pygments import unistring as uni
+
+alpha_class = '_' + uni.Lu + uni.Ll + uni.Lm + uni.Lo + uni.Lt
+identifier = r"[%s][%s]*" % (alpha_class, '0-9' + alpha_class)
 
 class AcaciaLexer(RegexLexer):
     name = "AcaciaMC"
     aliases = ["acacia", "aca"]
     filenames = ["*.aca"]
-
-    _identifier = r"[a-zA-Z_]\w*"
 
     tokens = {
         "root": [
@@ -20,26 +22,23 @@ class AcaciaLexer(RegexLexer):
                 bygroups(Whitespace, Punctuation),
                 "single_command"
             ),
-            (
-                r"^(\s*)(@(?:position|type|spawn_event):)",
-                bygroups(Whitespace, Name.Label)
-            ),
             include("ws"),
             include("numbers"),
             (r":=", Operator),
             (r"[:,()\[\]{}]", Punctuation),
             (r'"', String.Double, "string"),
             (
-                r"->|!=|==|\+=|-=|\*=|/=|%=|[-+/*%=<>.|@]",
+                r"->|!=|==|\+=|-=|\*=|/=|%=|[-+/*%=<>.|]",
                 Operator,
             ),
-            (r"(and|or|not)\b", Operator.Word),
+            (words(("and", "or", "not"), suffix=r"\b"), Operator.Word),
             include("keywords"),
             include("control_flow_keywords"),
-            (r"def", Keyword.Declaration, "func_name"),
-            (r"entity|struct", Keyword.Declaration, "class_name"),
+            (r"\bdef\b", Keyword.Declaration, "func_name"),
+            (r"\b(entity|struct)\b", Keyword.Declaration, "class_name"),
+            (r"\binterface\b", Keyword.Declaration, "interface_name"),
             include("builtins"),
-            (_identifier, Name),
+            (identifier, Name),
         ],
         "ws": [
             # We split `\s+` into two rules, so that the rule that
@@ -72,9 +71,10 @@ class AcaciaLexer(RegexLexer):
             (
                 words(
                     (
-                        "def", "interface", "inline", "entity", "extends",
-                        "self", "result", "import", "as", "from", "virtual",
-                        "override", "struct"
+                        # entity, struct, def, interface have their own rules
+                        "inline", "extends", "self", "result", "import", "as",
+                        "from", "virtual", "override", "new", "const",
+                        "virtual", "static"
                     ),
                     suffix=r"\b"
                 ),
@@ -85,9 +85,12 @@ class AcaciaLexer(RegexLexer):
             (
                 words(
                     (
+                        # Types
                         "int", "bool", "Pos", "Rot", "Offset", "Engroup",
                         "Enfilter", "list", "map", "AbsPos", "ExternEngroup",
-                        "Entity"
+                        "Entity", "Any",
+                        # Functions
+                        "scb", "swap", "upcast"
                     ),
                     prefix=r"(?<!\.)",
                     suffix=r"\b"
@@ -97,13 +100,17 @@ class AcaciaLexer(RegexLexer):
         ],
         "func_name": [
             include("ws"),
-            ("__init__\b", Name.Function.Magic, "#pop"),
-            (_identifier, Name.Function, "#pop"),
+            (identifier, Name.Function, "#pop"),
             default("#pop")
         ],
         "class_name": [
             include("ws"),
-            (_identifier, Name.Class, "#pop"),
+            (identifier, Name.Class, "#pop"),
+            default("#pop")
+        ],
+        "interface_name": [
+            include("ws"),
+            (r"[\w./-]+", String, "#pop"),
             default("#pop")
         ],
         "formatted_expr": [
@@ -133,7 +140,7 @@ class AcaciaLexer(RegexLexer):
             include("escape_fexpr"),
             (r'"', String.Double, "#pop"),
             (r"%%", String.Escape),
-            (r"%%(\d|\{(\d+|%s)\})" % _identifier, String.Interpol),
+            (r"%%(\d|\{(\d+|%s)\})" % identifier, String.Interpol),
             (r'[^"\n\\%\$]+', String.Double),
             (r"[\\%\$]", String.Double),
             default("#pop"),
