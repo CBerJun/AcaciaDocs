@@ -38,6 +38,40 @@ Acacia 文档
     Alice and Bob
     or xor
 
+.. module:: foo
+
+    ``foo`` 模块。
+
+    .. function:: bar()
+
+        这是 ``bar``。
+
+.. function:: spam()
+    :module: foo
+    :type: inline
+
+    可以引用 :mod:`foo` 里的其他内容 :fn:`bar`\ 。
+    当然也可以引用最上层的 :fn:`test_function`\ 。
+
+.. function:: test_function(arg1, arg2)
+
+    测试函数，引用 :fn:`foo.spam`\ 。
+    引用 :fn:`~foo.spam`\ ，不带模块名。
+
+.. function:: f1(const arg1: int, &arg2 = x) -> const foo.bar
+    :type: inline
+
+    f1，这是一个参数 :arg:`arg1`\ 。
+
+.. function:: f2(x: int = 0xBeeF, y = "foo\")bar", z = {1, 2, 3}) -> int
+    :type: const
+
+    f2，参数 :arg:`x`\ 。
+
+.. function:: f3(x=1+2+f2(), y=False)
+
+    f3
+
 文档大纲
 --------
 

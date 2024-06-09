@@ -28,6 +28,8 @@ lexers["acacia"] = AcaciaLexer()
 highlight_language = "acacia"
 pygments_style = "default"
 
+primary_domain = 'aca'
+
 # -- Options for HTML output
 
 html_theme = 'sphinx_rtd_theme'

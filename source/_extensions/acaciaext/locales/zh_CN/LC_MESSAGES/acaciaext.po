@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-11-25 08:13-0500\n"
+"POT-Creation-Date: 2024-06-08 23:02-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_CN\n"
@@ -19,12 +18,30 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: source/_extensions/acaciaext/__init__.py:24
+#: source/_extensions/acaciaext/__init__.py:57
 #, python-format
 msgid "MCWiki: %s"
 msgstr "MC维基: %s"
 
-#: source/_extensions/acaciaext/__init__.py:25
+#: source/_extensions/acaciaext/__init__.py:58
 msgid "www"
 msgstr "zh"
+
+#: source/_extensions/acaciaext/__init__.py:402
+#, python-format
+msgid "%s (function)"
+msgstr "%s (函数)"
+
+#: source/_extensions/acaciaext/__init__.py:437
+#, python-format
+msgid "%s (module)"
+msgstr "%s (模块)"
+
+#: source/_extensions/acaciaext/__init__.py:493
+msgid "function"
+msgstr "函数"
+
+#: source/_extensions/acaciaext/__init__.py:494
+msgid "module"
+msgstr "模块"
 
