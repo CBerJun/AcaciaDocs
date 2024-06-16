@@ -21,30 +21,21 @@ language = "zh_CN"
 
 # -- General configuration
 
-extensions = ["acaciaext"]
+extensions = ["acaciaext", "acacia_theme"]
 source_suffix = '.rst'
 
 lexers["acacia"] = AcaciaLexer()
 highlight_language = "acacia"
-pygments_style = "default"
 
 primary_domain = 'aca'
 
 # -- Options for HTML output
 
-html_theme = 'alabaster'
-html_theme_options = {
-    'description': 'A programming language for Minecraft Bedrock',
-    'link': '#0072aa',
-    'link_hover': '#00b0e4',
-    'anchor': '#0072aa',
-    'anchor_hover_fg': '#00b0e4',
-    'warn_bg': '#ffe4e4',
-    'warn_border': '#ff6666',
-    'seealso_bg': '#ffffcc',
-    'seealso_border': '#dddd66',
+html_theme = 'acacia_theme'
+html_sidebars = {
+    # Remove search box because we put it in other places
+    "**": ["localtoc.html", "relations.html", "sourcelink.html"],
 }
-html_static_path = ['_static']
 
 # -- Options for EPUB output
 

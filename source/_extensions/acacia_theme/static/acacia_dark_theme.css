@@ -1,0 +1,89 @@
+/****************************
+* Variables
+****************************/
+
+:root {
+    --background-color: rgb(0, 0, 0);
+    --dark-blue: rgb(144, 218, 255);
+    --black: rgb(255, 255, 255);
+}
+
+/****************************
+* Fixed elements
+****************************/
+
+@media (max-width: 1023px) {
+    #menu-toggle:hover {
+        background-color: rgb(0, 133, 145);
+    }
+}
+
+/****************************
+* Document related
+****************************/
+
+/**** Code block ****/
+div.body pre {
+    background-color: rgb(16, 20, 23);
+    border-color: rgb(84, 87, 89);
+}
+/* General links */
+div.body a {
+    color: rgb(35, 182, 255);
+}
+div.body a:visited {
+    color: rgb(140, 140, 237);
+}
+div.body a:hover {
+    color: rgb(0, 200, 255);
+}
+/* Highlighting in signatures */
+.sig .k {
+    /* Keyword */
+    color: rgb(8, 231, 229);
+}
+.sig .m {
+    /* Number literal */
+    color: rgb(209, 175, 255);
+}
+.sig .s {
+    /* String literal */
+    color: rgb(231, 231, 67);
+}
+/* Admonition */
+div.admonition.note {
+    background-color: rgb(0, 62, 114);
+    border-color: rgb(4, 120, 220);
+}
+div.admonition.seealso {
+    background-color: rgb(42, 73, 6);
+    border-color: rgb(93, 139, 11);
+}
+div.admonition.warning {
+    background-color: rgb(116, 3, 3);
+    border-color: rgb(255, 114, 114);
+}
+/* Versionxxed */
+.versionmodified.added {
+    color: rgb(0, 216, 0);
+}
+.versionmodified.changed {
+    color: rgb(27, 209, 217);
+}
+.versionmodified.deprecated {
+    color: rgb(255, 0, 0);
+}
+div.versionadded {
+    border-left-color: rgb(22 243 22);
+}
+div.versionchanged {
+    border-left-color: rgb(28 242 253);
+}
+div.deprecated {
+    border-left-color: rgb(255, 0, 0);
+}
+/* Highlights */
+dt:target,
+span.highlighted {
+    background-color: rgb(10, 103, 110);
+}

@@ -1,7 +1,12 @@
-/*
-    CSS style that overrides the default Alabaster theme.
-    Code based on https://github.com/python/python-docs-theme
-    Following is the license:
+Acacia Theme
+==================
+
+This is the Sphinx theme used by the Acacia documentation.
+
+Credits
+------------------
+
+Though I wrote most of the code, much of the design is inspired by `the Python documentation theme <https://github.com/python/python-docs-theme>`_. Here is the license of that project::
 
     PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2
     --------------------------------------------
@@ -51,76 +56,34 @@
     8. By copying, installing or otherwise using Python, Licensee
     agrees to be bound by the terms and conditions of this License
     Agreement.
-*/
 
-/* Colors */
-:root {
-    --good-color: rgb(41, 100, 51);
-    --good-border: rgb(79, 196, 100);
-    --middle-color: rgb(133, 72, 38);
-    --middle-border: rgb(244, 227, 76);
-    --bad-color: rgb(159, 49, 51);
-    --bad-border: rgb(244, 76, 78);
-}
+A small portion of code were based on the ``basic`` theme provided with `Sphinx <https://www.sphinx-doc.org/>`_. Here is the license::
 
-/* Xrefs */
-div.body code.xref,
-div.body tt.xref,
-div.body a tt,
-div.body a code {
-    /* Override basic theme's style of boldface. */
-    font-weight: normal;
-    /* Override Alabaster's "code, tt {color: #222;}" */
-    color: inherit;
-    /* Override Alabaster's "a.reference {text-decoration: none;}" */
-    text-decoration: underline 1px;
-    /* Increase the underline offset to avoid obscuring underscores. */
-    text-underline-offset: 0.25em;
-}
+    Unless otherwise indicated, all code in the Sphinx project is licenced under the
+    two clause BSD licence below.
 
-/* Version change directives */
-:root {
-    --versionadded: var(--good-color);
-    --versionchanged: var(--middle-color);
-    --deprecated: var(--bad-color);
+    Copyright (c) 2007-2023 by the Sphinx team (see AUTHORS file).
+    All rights reserved.
 
-    --versionadded-border: var(--good-border);
-    --versionchanged-border: var(--middle-border);
-    --deprecated-border: var(--bad-border);
-}
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are
+    met:
 
-div.versionadded,
-div.versionchanged,
-div.deprecated,
-div.deprecated-removed {
-    border-left: 3px solid;
-    padding: 0 1rem;
-}
+    * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
 
-div.versionadded {
-    border-left-color: var(--versionadded-border);
-}
+    * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
 
-div.versionchanged {
-    border-left-color: var(--versionchanged-border);
-}
-
-div.deprecated,
-div.deprecated-removed,
-div.versionremoved {
-    border-left-color: var(--deprecated-border);
-}
-
-div.versionadded .versionmodified {
-    color: var(--versionadded);
-}
-
-div.versionchanged .versionmodified {
-    color: var(--versionchanged);
-}
-
-div.deprecated .versionmodified,
-div.deprecated-removed .versionmodified,
-div.versionremoved .versionmodified {
-    color: var(--deprecated);
-}
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

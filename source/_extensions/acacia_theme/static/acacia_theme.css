@@ -1,0 +1,471 @@
+@import url("basic.css");
+
+/****************************
+* Variables
+****************************/
+:root {
+    --code-font: Consolas, monaco, monospace;
+    --body-left-margin: 1em;
+    --body-right-margin: 1em;
+    --mobile-nav-height: 35px;
+    --sidebar-width: 230px;
+    --background-color: rgb(240, 229, 218);
+    --dark-blue: rgb(0, 72, 108);
+    --black: rgb(0, 0, 0);
+}
+
+/****************************
+* Fixed elements
+****************************/
+
+/**** General searchbox ****/
+form.search {
+    display: flex;
+    justify-items: stretch;
+}
+
+/**** Platform specific ****/
+@media (min-width: 1024px) {
+    /**** Variables ****/
+    :root {
+        --indent-size: 2em;
+    }
+
+    /**** Disable mobile navigation ****/
+    div.mobile-nav {
+        display: none;
+    }
+    div.related #last_rellink {
+        margin-right: 10px;
+    }
+
+    /**** Related bar ****/
+    /* Make related bar pretty */
+    div.related {
+        margin-top: 0.5em;
+        margin-bottom: 1.2em;
+        padding-top: 0.2em;
+        padding-bottom: 0.2em;
+        font-size: 120%;
+        border-bottom: solid 1px var(--black);
+    }
+    div.related ul {
+        /* Override layout of basic.css */
+        padding-left: 0.1em;
+        margin-top: 0;
+        margin-bottom: 0.4em;
+        color: var(--dark-blue);
+    }
+    /* Top bar */
+    div.related .related-top {
+        margin-top: 0;
+        margin-bottom: 0.15em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    div.related .related-top-right {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    div.related .related-top-right .theme-selector-wrapper {
+        margin-right: 10px;
+    }
+    /* Title */
+    div.related .related-top #acacia-title {
+        font-weight: bold;
+        font-size: 200%;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        margin: 0;
+        /* basic.css sets display: none; for div.related h3 */
+        display: inline;
+    }
+    /* Search */
+    div.related .related-top form.search {
+        margin-right: 5px;
+    }
+
+    /**** Sidebar layout ****/
+    div.document {
+        /* Flex so that sidebar goes after main contents
+        basic.css in fact specifies a -100% margin-left for sidebar
+        and that's why we put sidebar after div.documentwrapper
+        in our layout.html */
+        display: flex;
+        overflow-wrap: break-word;
+    }
+    div.documentwrapper {
+        /* Make space for sidebar */
+        width: 100%;
+    }
+    div.bodywrapper {
+        /* Make space for sidebar. */
+        margin-left: var(--sidebar-width);
+    }
+    div.sphinxsidebar {
+        float: none;
+        position: sticky;
+        top: 0;
+        max-height: 100vh;
+        width: var(--sidebar-width);
+        color: inherit;
+        background-color: inherit;
+        line-height: 130%;
+        font-size: 85%;
+    }
+    div.sphinxsidebarwrapper {
+        padding-right: 1em;
+        padding-bottom: 1em;
+        height: 100%;
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+    div.body {
+        padding-left: 1em;
+    }
+
+    /**** Sidebar contents ****/
+    div.sphinxsidebar h3 {
+        font-size: 1.35em;
+        color: var(--dark-blue);
+        margin: 0;
+        text-wrap: wrap;
+    }
+    div.sphinxsidebarwrapper > div:has(> h3) {
+        margin-top: 1.5em;
+    }
+    div.sphinxsidebarwrapper > div:first-child {
+        margin-top: 0;
+    }
+    div.sphinxsidebar h4 {
+        font-size: 1em;
+        margin: 0;
+    }
+    div.sphinxsidebar ul ul {
+        padding-left: 0;
+        margin-left: 1.8em;
+    }
+    div.sphinxsidebarwrapper > div > ul {
+        padding-left: 0;
+        /* No margin for root ul */
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 1023px) {
+    /**** Variables ****/
+    :root {
+        --indent-size: 1.25em;
+    }
+
+    /**** Force device to show full page ****/
+    div.body {
+        min-width: 100%;
+    }
+
+    /**** Disable related bar and sidebar ****/
+    div.related {
+        display: none;
+    }
+    div.sphinxsidebar {
+        display: none;
+    }
+
+    /**** Mobile navigation ****/
+    /* Make sure the bar does not overlap document */
+    div.document {
+        margin-top: calc(var(--mobile-nav-height) * 1.2);
+    }
+    div.mobile-nav {
+        position: fixed;
+        z-index: 1;
+        height: var(--mobile-nav-height);
+        left: var(--body-left-margin);
+        right: var(--body-right-margin);
+        top: 0;
+    }
+    div.mobile-nav > nav {
+        position: absolute;
+        z-index: 1;
+        height: var(--mobile-nav-height);
+        width: 100%;
+        display: flex;
+        background-color: var(--background-color);
+    }
+    .nav-items {
+        display: flex;
+        align-items: stretch;
+        flex: auto;
+    }
+    a.nav-home {
+        align-self: center;
+        margin-right: 0.75em;
+        font-size: 120%;
+        color: var(--dark-blue);
+        text-decoration: none;
+        font-weight: bold;
+    }
+    a.nav-home:hover {
+        text-decoration: underline;
+    }
+    /* Search */
+    .nav-items form.search {
+        flex: auto;
+        align-items: stretch;
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+    .nav-items form.search input[type="text"] {
+        flex: 1;
+        /* Allows it to shrink to fit */
+        width: 100%;
+    }
+    /* Menu toggle */
+    #menu-toggle {
+        padding: 0;
+        margin-right: 0.25em;
+        height: 100%;
+        width: var(--mobile-nav-height);
+        border: none;
+        color: inherit;
+        background-color: inherit;
+        transition: background-color 400ms;
+        font-size: calc(var(--mobile-nav-height) * 0.75);
+        font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
+    }
+    #menu-toggle:hover {
+        background-color: rgb(234, 214, 194);
+    }
+
+    /**** Menu bar ****/
+    /* The `left` property represents whether this is shown or hidden
+       For the sake of animation, this logic is written in js in layout.html */
+    #mobile-menu-wrapper {
+        position: fixed;
+        top: var(--mobile-nav-height);
+        transition: left 400ms ease;
+        width: var(--sidebar-width);
+        height: calc(100% - var(--mobile-nav-height));
+        background-color: var(--background-color);
+        overflow-y: auto;
+    }
+    #mobile-menu {
+        padding: 0.5em 1em;
+        color: var(--black);
+        line-height: 130%;
+    }
+    #mobile-menu a {
+        text-decoration: none;
+        color: inherit;
+    }
+    #mobile-menu a:hover {
+        text-decoration: underline;
+    }
+    #mobile-menu ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    #mobile-menu > div > ul {
+        /* No margin for root ul */
+        margin-left: 0;
+    }
+    #mobile-menu ul ul {
+        list-style-type: square;
+        margin-left: 1.8em;
+    }
+    #mobile-menu h3 {
+        color: var(--dark-blue);
+        font-size: 1.35em;
+    }
+    #mobile-menu h4 {
+        font-size: 1em;
+    }
+    /* Mobile menu theme selector */
+    #mobile-menu div.theme-selector-wrapper {
+        width: 100%;
+    }
+    #mobile-menu .theme-selector {
+        flex: 1;
+        width: 100%;
+    }
+}
+
+/**** Theme selector ****/
+div.theme-selector-wrapper {
+    display: flex;
+    align-items: center;
+}
+.theme-selector-label {
+    margin-right: 0.5em;
+    font-size: 85%;
+}
+
+/**** Footer ****/
+div.footer {
+    text-align: right;
+    margin-top: 1.5em;
+    border-top: solid 1px var(--black);
+    padding-top: 0.5em;
+}
+
+/****************************
+* Document related
+****************************/
+
+/**** General ****/
+body {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 14px;
+    color: var(--black);
+    background-color: var(--background-color);
+    /* Page margin */
+    margin-left: var(--body-left-margin);
+    margin-right: var(--body-right-margin);
+}
+div.body p {
+    text-align: left;
+    line-height: 130%;
+}
+
+/**** General layout ****/
+div.body blockquote,
+div.body li,
+div.body dd {
+    margin-left: var(--indent-size);
+}
+div.body ul {
+    padding-left: 0;
+}
+
+/**** Code block ****/
+div.body pre {
+    font-family: var(--code-font);
+    padding: 0.5em;
+    background-color: rgb(255, 255, 255);
+    border: solid 1px rgb(0, 96, 181);
+    border-radius: 3px;
+}
+
+/**** Texts ****/
+/* Title */
+div.body h1,
+div.body h2,
+div.body h3,
+div.body h4,
+div.body h5,
+div.body h6 {
+    color: var(--dark-blue);
+}
+/* Literal */
+code {
+    font-family: var(--code-font);
+}
+code.xref,
+a code {
+    /* Cancel basic's boldface */
+    font-weight: normal;
+}
+/* General links */
+div.body a {
+    color: rgb(0, 114, 170);
+}
+div.body a:visited {
+    color: rgb(99, 99, 187);
+}
+div.body a:hover {
+    color: rgb(0, 176, 228);
+}
+/* Move underline of links that contain code
+ * lower so that it doesn't overlap the underscores
+ */
+a:has(> code) {
+    text-underline-offset: 0.25em;
+}
+/* Header link */
+a.headerlink {
+    margin-left: 1em;
+    text-decoration: none;
+}
+/* Navigation related links */
+div[role=navigation] a {
+    text-decoration: none;
+    color: inherit;
+}
+div[role=navigation] a:hover {
+    text-decoration: underline;
+}
+/* Signatures */
+.sig {
+    font-family: var(--code-font);
+}
+/* Highlighting in signatures */
+.sig .k {
+    /* Keyword */
+    color: rgb(0, 128, 0);
+}
+.sig .m {
+    /* Number literal */
+    color: rgb(102, 102, 102);
+}
+.sig .s {
+    /* String literal */
+    color: rgb(186, 33, 33);
+}
+/* Admonition */
+div.admonition {
+    border: solid 1px;
+    border-radius: 3px;
+}
+div.admonition.note {
+    background-color: rgb(213, 233, 250);
+    border-color: rgb(9, 113, 203);
+}
+div.admonition.seealso {
+    background-color: rgb(250, 250, 213);
+    border-color: rgb(203, 113, 9);
+}
+div.admonition.warning {
+    background-color: rgb(250, 213, 213);
+    border-color: rgb(203, 113, 113);
+}
+/* Versionxxed */
+.versionmodified.added {
+    color: rgb(25, 114, 25);
+}
+.versionmodified.changed {
+    color: rgb(0, 115, 120);
+}
+.versionmodified.deprecated {
+    color: rgb(208, 0, 0);
+}
+div.versionadded,
+div.versionchanged,
+div.deprecated {
+    padding-left: 1em;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+    margin-block-start: 0.7em;
+    margin-block-end: 0.7em;
+    border-left: solid 3px;
+}
+div.versionadded {
+    border-left-color: rgb(18, 184, 18);
+}
+div.versionchanged {
+    border-left-color: rgb(25, 203, 212);
+}
+div.deprecated {
+    border-left-color: rgb(255, 0, 0);
+}
+div.versionadded > p:first-child,
+div.versionchanged > p:first-child,
+div.deprecated > p:first-child {
+    margin-top: 0;
+}
+div.versionadded > p:last-child,
+div.versionchanged > p:last-child,
+div.deprecated > p:last-child{
+    margin-bottom: 0;
+}

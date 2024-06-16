@@ -1,0 +1,100 @@
+{%- extends "basic/layout.html" %}
+
+{%- macro new_search_box() %}
+    {# modified from searchbox.html in "basic" theme #}
+    {%- if pagename != "search" and builder != "singlehtml" %}
+    <form class="search" role="search" action="{{ pathto('search') }}" method="get">
+        <input type="text" name="q" aria-labelledby="searchlabel"
+            autocomplete="off" autocorrect="off" autocapitalize="off"
+            spellcheck="false" placeholder="{{ _('Quick search') }}"/>
+        <input type="submit" value="{{ _('Go') }}" />
+    </form>
+    {%- endif %}
+{%- endmacro %}
+
+{%- macro theme_selector() %}
+{# Based on layout.html in python_docs_theme #}
+<div class="theme-selector-wrapper">
+    <label class="theme-selector-label">
+        {{ _('Theme') }}
+    </label>
+    <select class="theme-selector" oninput="acaciaSetColorScheme(this.value)">
+        <option value="auto" selected>{{ _('Auto') }}</option>
+        <option value="light">{{ _('Light') }}</option>
+        <option value="dark">{{ _('Dark') }}</option>
+    </select>
+</div>
+{%- endmacro %}
+
+{%- macro new_relbar() %}
+{# modified from layout.html in "basic" theme #}
+<div class="related" role="navigation" aria-label="related navigation">
+    <div class="related-top">
+        <h3 id="acacia-title">
+            {{ theme_project_name }}
+        </h3>
+        <div class="related-top-right">
+            {{ theme_selector() }}
+            {{ new_search_box() }}
+        </div>
+    </div>
+    <ul>
+    {%- for rellink in rellinks %}
+    <li class="right" {% if loop.first %}id="last_rellink"{% endif %}>
+        <a href="{{ pathto(rellink[0])|e }}" title="{{ rellink[1]|striptags|e }}"
+        {{ accesskey(rellink[2]) }}>{{ rellink[3] }}</a>
+        {%- if not loop.first %}{{ reldelim2 }}{% endif %}</li>
+    {%- endfor %}
+    {%- block rootrellink %}
+    <li class="nav-item nav-item-0">
+        <a href="{{ pathto(root_doc)|e }}">{{ shorttitle|e }}</a>
+        {{ reldelim1 }}
+    </li>
+    {%- endblock %}
+    {%- for parent in parents %}
+        <li class="nav-item nav-item-{{ loop.index }}">
+            <a href="{{ parent.link|e }}" {% if loop.last %}{{ accesskey("U") }}{% endif %}>
+                {{ parent.title }}
+            </a>
+            {{ reldelim1 }}
+        </li>
+    {%- endfor %}
+    <li class="nav-item nav-item-this"><a href="{{ link|e }}">{{ title }}</a></li>
+    {%- block relbaritems %} {% endblock %}
+    </ul>
+</div>
+{%- endmacro %}
+
+{% block relbar1 %}
+    {{ new_relbar() }}
+{% endblock %}
+
+{% block relbar2 %}
+    {# remove relbar2 #}
+{% endblock %}
+
+{% block body_tag %}
+{{ super() }}
+{%- if builder != 'htmlhelp' %}
+<div class="mobile-nav">
+    <nav role="navigation">
+        <span class="nav-items">
+            <button type="button" id="menu-toggle" onclick="acaciaMenuToggle()">
+            </button>
+            <a href="{{ pathto('index') }}" class="nav-home" role="navigation">
+                {{ theme_project_name }}
+            </a>
+            {{ new_search_box() }}
+        </span>
+    </nav>
+    <div id="mobile-menu-wrapper">
+        <nav id="mobile-menu" role="navigation">
+            {{ theme_selector() }}
+            {%- for sidebartemplate in sidebars %}
+                {%- include sidebartemplate %}
+            {%- endfor %}
+        </nav>
+    </div>
+</div>
+{% endif -%}
+{% endblock %}
