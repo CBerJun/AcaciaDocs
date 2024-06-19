@@ -13,7 +13,12 @@ if "%PYTHON%" == "" (
 set SOURCEDIR=source
 set BUILDDIR=build
 
-if "%1" == "" goto help
+REM Cleaning does not require sphinx-build
+REM Sphinx's clean is SLOW...
+if "%1" == "clean" (
+    rmdir /q /s "%BUILDDIR%"
+    goto end
+)
 
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (
@@ -28,12 +33,15 @@ if errorlevel 9009 (
 	exit /b 1
 )
 
-%PYTHON% babel_runner.py compile
-%SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
+if "%1" == "" goto help
+if "%1" == "help" goto help
+
+%PYTHON% babel_runner.py compile source\_extensions\acaciaext acaciaext
+%SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS%
 goto end
 
 :help
-%SPHINXBUILD% -M help %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
+%SPHINXBUILD% -M help %SOURCEDIR% %BUILDDIR% %SPHINXOPTS%
 
 :end
 popd

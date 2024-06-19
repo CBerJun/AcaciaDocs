@@ -6,7 +6,7 @@ build:
     python: "3.10"
   jobs:
     pre_build:
-      - python babel_runner.py compile
+      - python babel_runner.py compile source/_extensions/acaciaext acaciaext
 
 python:
   install:

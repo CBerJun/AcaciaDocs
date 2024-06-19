@@ -29,16 +29,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Usage:
 
-babel_runner.py extract
-    Extract messages from the source code and update the ".pot" template file.
+babel_runner.py <command> <source_directory> <catalog_name>
 
-babel_runner.py (update | msginit)
-    Update/Initialize all language catalogues in
-    "source/_extensions/acaciaext/locales/<language>/LC_MESSAGES"
-    with the current messages in the template file.
-
-babel_runner.py compile
-    Compile the ".po" catalogue files to ".mo" and ".js" files.
+where <command> is one of:
+    extract
+        Extract messages from the source code and update the ".pot"
+        template file.
+    update
+    msginit
+        Update/Initialize all language catalogues in
+        "<source_directory>/locales/<language>/LC_MESSAGES"
+        with the current messages in the template file.
+    compile
+        Compile the ".po" catalogue files to ".mo" and ".js" files.
 """
 
 import json
@@ -95,19 +98,17 @@ OPTIONS_MAP = {
     },
 }
 KEYWORDS = {**DEFAULT_KEYWORDS, '_': None, '__': None}
-INPUT_PATH = os.path.join("source", "_extensions", "acaciaext")
-NAME = "acaciaext"
 
-def run_extract():
+def run_extract(name: str, src_path: str) -> None:
     """Message extraction function."""
     log = _get_logger()
 
     catalogue = Catalog(
-        project="Acacia Docs", charset='utf-8', domain=NAME,
+        project="Acacia Docs", charset='utf-8', domain=name,
         copyright_holder="CBerJun"
     )
 
-    base = os.path.abspath(INPUT_PATH)
+    base = os.path.abspath(src_path)
     for root, dirnames, filenames in os.walk(base):
         relative_root = os.path.relpath(root, base) if root != base else ''
         dirnames.sort()
@@ -125,33 +126,33 @@ def run_extract():
                     for lineno, message, comments, context in extract(
                         method, fileobj, KEYWORDS, options=options,
                     ):
-                        filepath = os.path.join(INPUT_PATH, relative_name)
+                        filepath = os.path.join(src_path, relative_name)
                         catalogue.add(
                             message, None, [(filepath, lineno)],
                             auto_comments=comments, context=context,
                         )
                 break
 
-    output_file = os.path.join(INPUT_PATH, 'locales', f'{NAME}.pot')
+    output_file = os.path.join(src_path, 'locales', f'{name}.pot')
     log.info('writing PO template file to %s', output_file)
     with open(output_file, 'wb') as outfile:
         write_po(outfile, catalogue)
 
 
-def run_update(init=False):
+def run_update(name: str, src_path: str, init=False):
     """Catalog merging command."""
 
     log = _get_logger()
 
-    locale_dir = os.path.join(INPUT_PATH, 'locales')
-    template_file = os.path.join(locale_dir, f'{NAME}.pot')
+    locale_dir = os.path.join(src_path, 'locales')
+    template_file = os.path.join(locale_dir, f'{name}.pot')
 
     with open(template_file, encoding='utf-8') as infile:
         template = read_po(infile)
 
     for locale in os.listdir(locale_dir):
         subdir = os.path.join(locale_dir, locale)
-        filename = os.path.join(subdir, 'LC_MESSAGES', f'{NAME}.po')
+        filename = os.path.join(subdir, 'LC_MESSAGES', f'{name}.po')
         if not os.path.exists(filename):
             if init and os.path.isdir(subdir):
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -162,7 +163,7 @@ def run_update(init=False):
 
         log.info('updating catalog %s based on %s', filename, template_file)
         with open(filename, encoding='utf-8') as infile:
-            catalog = read_po(infile, locale=locale, domain=NAME)
+            catalog = read_po(infile, locale=locale, domain=name)
 
         catalog.update(template)
         tmp_name = os.path.join(
@@ -178,7 +179,7 @@ def run_update(init=False):
         os.replace(tmp_name, filename)
 
 
-def run_compile():
+def run_compile(name: str, src_path: str):
     """
     Catalog compilation command.
 
@@ -191,11 +192,11 @@ def run_compile():
 
     log = _get_logger()
 
-    directory = os.path.join(INPUT_PATH, 'locales')
+    directory = os.path.join(src_path, 'locales')
     total_errors = 0
 
     for locale in os.listdir(directory):
-        po_file = os.path.join(directory, locale, 'LC_MESSAGES', f'{NAME}.po')
+        po_file = os.path.join(directory, locale, 'LC_MESSAGES', f'{name}.po')
         if not os.path.exists(po_file):
             continue
 
@@ -212,12 +213,12 @@ def run_compile():
                 log.error('error: %s:%d: %s\nerror:     in message string: %s',
                           po_file, message.lineno, error, message.string)
 
-        mo_file = os.path.join(directory, locale, 'LC_MESSAGES', f'{NAME}.mo')
+        mo_file = os.path.join(directory, locale, 'LC_MESSAGES', f'{name}.mo')
         log.info('compiling catalog %s to %s', po_file, mo_file)
         with open(mo_file, 'wb') as outfile:
             write_mo(outfile, catalog, use_fuzzy=False)
 
-        js_file = os.path.join(directory, locale, 'LC_MESSAGES', f'{NAME}.js')
+        js_file = os.path.join(directory, locale, 'LC_MESSAGES', f'{name}.js')
         log.info('writing JavaScript strings in catalog %s to %s', po_file, js_file)
         js_catalogue = {}
         for message in catalog:
@@ -242,7 +243,7 @@ def run_compile():
     if total_errors > 0:
         log.error('%d errors encountered.', total_errors)
         print("Compiling failed.", file=sys.stderr)
-        raise SystemExit(2)
+        sys.exit(2)
 
 
 def _get_logger():
@@ -254,26 +255,31 @@ def _get_logger():
     return log
 
 
-if __name__ == '__main__':
+def main():
     try:
+        src_dir = sys.argv[2]
+        catalog_name = sys.argv[3]
         action = sys.argv[1].lower()
     except IndexError:
         print(__doc__, file=sys.stderr)
-        raise SystemExit(2) from None
+        sys.exit(2)
 
     if action == "extract":
-        raise SystemExit(run_extract())
+        sys.exit(run_extract(catalog_name, src_dir))
     if action == "update":
-        raise SystemExit(run_update())
+        sys.exit(run_update(catalog_name, src_dir))
     if action == "msginit":
-        raise SystemExit(run_update(init=True))
+        sys.exit(run_update(catalog_name, src_dir, init=True))
     if action == "compile":
-        raise SystemExit(run_compile())
+        sys.exit(run_compile(catalog_name, src_dir))
     if action == "all":
-        exit_code = run_extract()
+        exit_code = run_extract(catalog_name, src_dir)
         if exit_code:
-            raise SystemExit(exit_code)
-        exit_code = run_update()
+            sys.exit(exit_code)
+        exit_code = run_update(catalog_name, src_dir)
         if exit_code:
-            raise SystemExit(exit_code)
-        raise SystemExit(run_compile())
+            sys.exit(exit_code)
+        sys.exit(run_compile(catalog_name, src_dir))
+
+if __name__ == '__main__':
+    main()
