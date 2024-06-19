@@ -22,7 +22,7 @@ language = "zh_CN"
 # -- General configuration
 
 extensions = ["acaciaext", "acacia_theme"]
-source_suffix = '.rst'
+exclude_patterns = ['_extensions/**']
 
 lexers["acacia"] = AcaciaLexer()
 highlight_language = "acacia"
