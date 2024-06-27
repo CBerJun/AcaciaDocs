@@ -177,6 +177,10 @@ form.search {
     div.document {
         margin-top: calc(var(--mobile-nav-height) * 1.2);
     }
+    /* Make sure anchor links are not hidden by navbar when scrolled to */
+    :root {
+        scroll-padding-top: var(--mobile-nav-height);
+    }
     div.mobile-nav {
         position: fixed;
         z-index: 1;
