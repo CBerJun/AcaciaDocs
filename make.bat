@@ -36,7 +36,7 @@ if errorlevel 9009 (
 if "%1" == "" goto help
 if "%1" == "help" goto help
 
-%PYTHON% babel_runner.py compile source\_extensions\acaciaext acaciaext
+%PYTHON% babel_runner.py compile source\_extensions\acacia_ext acacia_ext
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS%
 goto end
 

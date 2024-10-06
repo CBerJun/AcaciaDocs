@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from sphinx.environment import BuildEnvironment
     from docutils.nodes import Node, system_message, Element
 
-I18N_CATALOG = 'acaciaext'
+I18N_CATALOG = 'acacia_ext'
 # These are used to parse the function signature
 HEXDIGITS = '0123456789abcdef'
 DECDIGITS = HEXDIGITS[:10]

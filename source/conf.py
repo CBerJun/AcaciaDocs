@@ -21,7 +21,7 @@ language = "zh_CN"
 
 # -- General configuration
 
-extensions = ["acaciaext", "acacia_theme"]
+extensions = ["acacia_ext", "acacia_theme"]
 exclude_patterns = ['_extensions/**']
 
 lexers["acacia"] = AcaciaLexer()

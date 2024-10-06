@@ -22,5 +22,5 @@ clean:
 # "make mode" option.
 .PHONY: Makefile
 %: Makefile
-	@$(PYTHON) babel_runner.py compile source/_extensions/acaciaext acaciaext
+	@$(PYTHON) babel_runner.py compile source/_extensions/acacia_ext acacia_ext
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
