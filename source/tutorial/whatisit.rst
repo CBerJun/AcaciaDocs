@@ -29,7 +29,7 @@ Acacia 就是一门这样的语言。把 Acacia 代码转换为命令的程序�
 .. code-block:: mcfunction
 
     scoreboard players operation answer s = x s
-    scoreboard players operation  s += y s
+    scoreboard players operation answer s += y s
     scoreboard players operation answer s *= z s
     scoreboard players set tmp s 2
     scoreboard players operation answer s /= tmp s
