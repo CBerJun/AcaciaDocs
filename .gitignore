@@ -11,6 +11,6 @@ env/
 venv/
 
 # I18n
-acaciaext.pot
-acaciaext.mo
-acaciaext.js
+*.pot
+*.mo
+**/locales/*/LC_MESSAGES/*.js
