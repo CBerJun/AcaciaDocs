@@ -470,6 +470,6 @@ div.deprecated > p:first-child {
 }
 div.versionadded > p:last-child,
 div.versionchanged > p:last-child,
-div.deprecated > p:last-child{
+div.deprecated > p:last-child {
     margin-bottom: 0;
 }
