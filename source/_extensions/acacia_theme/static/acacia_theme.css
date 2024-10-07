@@ -434,6 +434,14 @@ div.admonition.warning {
     background-color: rgb(250, 213, 213);
     border-color: rgb(203, 113, 113);
 }
+div.admonition.tip {
+    background-color: rgb(221, 255, 221);
+    border-color: rgb(18, 146, 18);
+}
+div.admonition.important {
+    background-color: rgb(242, 226, 255);
+    border-color: rgb(164, 14, 255);
+}
 /* Versionxxed */
 .versionmodified.added {
     color: rgb(25, 114, 25);
