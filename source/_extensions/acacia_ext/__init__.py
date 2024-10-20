@@ -56,8 +56,7 @@ class MCWikiRole(ReferenceRole):
             else:
                 title = _("MCWiki: %s") % target
         refuri = "https://%s.minecraft.wiki/w/%s" % (_("www"), target)
-        reference = nodes.reference('', '', internal=False, refuri=refuri)
-        reference += nodes.strong(title, title)
+        reference = nodes.reference('', title, internal=False, refuri=refuri)
         return [reference], []
 
 def push_module(name: str, env: "BuildEnvironment") -> None:
