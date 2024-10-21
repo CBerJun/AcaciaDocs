@@ -441,7 +441,7 @@ class AcaciaXRefRole(XRefRole):
         has_explicit_title: bool, title: str, target: str,
         suffix: str = ''
     ) -> tuple[str, str]:
-        refnode['aca:module'] = env.ref_context.get('aca:module')
+        refnode['aca:module_attr'] = env.ref_context.get('aca:module')
         if not has_explicit_title:
             target = target.lstrip('~')
             if title.startswith('~'):
@@ -524,20 +524,20 @@ class AcaciaDomain(Domain):
         self, env: "BuildEnvironment", fromdocname: str, builder: "Builder",
         typ: str, target: str, node: "pending_xref", contnode: "Element",
     ) -> Optional["Element"]:
-        modname = node.get('aca:module')
-        fulltarget = get_fullname(target, modname)
-        objtypes = self.objtypes_for_role(typ)
-        if not objtypes:
-            return None
-        for objtype in objtypes:
-            result = self.objects.get((objtype, fulltarget))
-            if not result:
-                # Try without module name (in builtins scope)
-                fulltarget = target
-                result = self.objects.get((objtype, fulltarget))
-            if result:
+        # Can refer to builtins
+        possible_targets = [target]
+        if (modname := node['aca:module_attr']) is not None:
+            # Can also refer to other objects in the same module; this
+            # overrides the builtins
+            possible_targets.insert(0, get_fullname(target, modname))
+        for full_target in possible_targets:
+            for objtype in self.objtypes_for_role(typ):
+                result = self.objects.get((objtype, full_target))
+                if result is None:
+                    continue
                 todocname, node_id = result
-                title = self.object_types[objtype].lname + ' ' + fulltarget
+                # The `title` is something like "function spam.ham":
+                title = f"{self.object_types[objtype].lname} {full_target}"
                 return make_refnode(builder, fromdocname, todocname, node_id,
                                     contnode, title)
         return None
