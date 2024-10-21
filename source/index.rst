@@ -50,12 +50,11 @@ Acacia 文档
 
         这是 ``bar``。
 
-.. function:: spam()
-    :module: foo
-    :type: inline
+    .. function:: spam()
+        :type: inline
 
-    可以引用 :mod:`foo` 里的其他内容 :fn:`bar`\ 。
-    当然也可以引用最上层的 :fn:`test_function`\ 。
+        可以引用 :mod:`foo` 里的其他内容 :fn:`bar`\ 。
+        当然也可以引用最上层的 :fn:`test_function`\ 。
 
 .. function:: test_function(arg1, arg2)
 

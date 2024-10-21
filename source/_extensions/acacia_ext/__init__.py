@@ -60,7 +60,7 @@ class MCWikiRole(ReferenceRole):
         return [reference], []
 
 def push_module(name: str, env: "BuildEnvironment") -> None:
-    modules = env.ref_context.setdefault('aca:modules', [])
+    modules: list[str] = env.ref_context.setdefault('aca:modules', [])
     modules.append(env.ref_context.get('aca:module'))
     env.ref_context['aca:module'] = name
 
@@ -82,14 +82,10 @@ class BaseAcaciaObject(ObjectDescription[T]):
         'no-index-entry': directives.flag,
         'no-contents-entry': directives.flag,
         'no-typesetting': directives.flag,
-        'module': directives.unchanged
     }
 
     def get_fullname(self, name: str) -> str:
-        modname = self.options.get(
-            'module', self.env.ref_context.get('aca:module')
-        )
-        return get_fullname(name, modname)
+        return get_fullname(name, self.env.ref_context.get('aca:module'))
 
     def get_index_name(self, fullname: str) -> Optional[str]:
         return None
@@ -111,14 +107,6 @@ class BaseAcaciaObject(ObjectDescription[T]):
             if indexname is not None:
                 entry = ('single', indexname, node_id, '', None)
                 self.indexnode['entries'].append(entry)
-
-    def before_content(self) -> None:
-        if 'module' in self.options:
-            push_module(self.options['module'], self.env)
-
-    def after_content(self) -> None:
-        if 'module' in self.options:
-            pop_module(self.env)
 
 class AcaciaObject(BaseAcaciaObject[str]):
     def add_target_and_index(
@@ -423,15 +411,12 @@ class AcaciaFunction(BaseAcaciaObject[FunctionSignature]):
         return self._add_target_and_index(name.name, sig, signode)
 
     def before_content(self) -> None:
-        super().before_content()
         sig = self.names[0]
         st = self.env.ref_context.setdefault('aca:param_stack', [])
-        args = [arg.name for arg in sig.args if arg.name]
-        st.append(args)
+        st.append([arg.name for arg in sig.args if arg.name])
 
     def after_content(self) -> None:
         self.env.ref_context['aca:param_stack'].pop()
-        super().after_content()
 
 class AcaciaModule(AcaciaObject):
     def get_index_name(self, fullname: str) -> Optional[str]:
@@ -445,12 +430,10 @@ class AcaciaModule(AcaciaObject):
         return sig
 
     def before_content(self) -> None:
-        super().before_content()
         push_module(self.names[0], self.env)
 
     def after_content(self) -> None:
         pop_module(self.env)
-        super().after_content()
 
 class AcaciaXRefRole(XRefRole):
     def process_link(
