@@ -442,14 +442,18 @@ class AcaciaXRefRole(XRefRole):
         suffix: str = ''
     ) -> tuple[str, str]:
         refnode['aca:module_attr'] = env.ref_context.get('aca:module')
-        if not has_explicit_title:
-            target = target.lstrip('~')
-            if title.startswith('~'):
-                dot = title.rfind('.')
-                if dot != -1:
-                    title = title[dot + 1:]
-                else:
-                    title = title[1:]
+        if has_explicit_title:
+            return title, target
+        # Leave the prefixing '^' in `target` to be processed later by
+        # `AcaciaDomain.resolve_xref`.
+        title = title.removeprefix('^')
+        if title.startswith('~'):
+            target = target.removeprefix('~')
+            dot = title.rfind('.')
+            if dot != -1:
+                title = title[dot + 1:]
+            else:
+                title = title[1:]  # len("~") == 1
         return title + suffix, target
 
 class AcaciaFunctionRole(AcaciaXRefRole):
@@ -524,9 +528,15 @@ class AcaciaDomain(Domain):
         self, env: "BuildEnvironment", fromdocname: str, builder: "Builder",
         typ: str, target: str, node: "pending_xref", contnode: "Element",
     ) -> Optional["Element"]:
+        # Check prefixing '^' that indicates "no module context"
+        if no_module_context := target.startswith('^'):
+            target = target[1:]
         # Can refer to builtins
         possible_targets = [target]
-        if (modname := node['aca:module_attr']) is not None:
+        if (
+            not no_module_context
+            and (modname := node['aca:module_attr']) is not None
+        ):
             # Can also refer to other objects in the same module; this
             # overrides the builtins
             possible_targets.insert(0, get_fullname(target, modname))
