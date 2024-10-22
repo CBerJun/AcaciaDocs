@@ -444,9 +444,6 @@ class AcaciaXRefRole(XRefRole):
         refnode['aca:module_attr'] = env.ref_context.get('aca:module')
         if has_explicit_title:
             return title, target
-        # Leave the prefixing '^' in `target` to be processed later by
-        # `AcaciaDomain.resolve_xref`.
-        title = title.removeprefix('^')
         if title.startswith('~'):
             target = target.removeprefix('~')
             dot = title.rfind('.')
@@ -454,6 +451,9 @@ class AcaciaXRefRole(XRefRole):
                 title = title[dot + 1:]
             else:
                 title = title[1:]  # len("~") == 1
+        # Leave the prefixing '^' in `target` to be processed later by
+        # `AcaciaDomain.resolve_xref`.
+        title = title.removeprefix('^')
         return title + suffix, target
 
 class AcaciaFunctionRole(AcaciaXRefRole):
