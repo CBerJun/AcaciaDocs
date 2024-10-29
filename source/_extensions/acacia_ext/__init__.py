@@ -65,11 +65,8 @@ def push_module(name: str, env: "BuildEnvironment") -> None:
     env.ref_context['aca:module'] = name
 
 def pop_module(env: "BuildEnvironment") -> None:
-    modules: list[str] = env.ref_context.setdefault('aca:modules', [])
-    if modules:
-        env.ref_context['aca:module'] = modules.pop()
-    else:
-        env.ref_context.pop('aca:module')
+    modules: list[str] = env.ref_context['aca:modules']
+    env.ref_context['aca:module'] = modules.pop()
 
 def get_fullname(name: str, modname: Optional[str]) -> str:
     return (modname + '.' if modname else '') + name
@@ -84,16 +81,38 @@ class BaseAcaciaObject(ObjectDescription[T]):
         'no-typesetting': directives.flag,
     }
 
-    def get_fullname(self, name: str) -> str:
-        return get_fullname(name, self.env.ref_context.get('aca:module'))
+    can_own_attributes: bool = True
+
+    def get_fullname(self) -> str:
+        return get_fullname(
+            self.get_partial_name(self.names[0]),
+            self.env.ref_context.get('aca:module')
+        )
+
+    def get_partial_name(self, ob: T) -> str:
+        raise NotImplementedError
 
     def get_index_name(self, fullname: str) -> Optional[str]:
         return None
 
-    def _add_target_and_index(
-        self, name: str, sig: str, signode: "desc_signature"
+    def before_content(self):
+        if not self.can_own_attributes:
+            return
+        names: list[str] = \
+            self.env.ref_context.setdefault('aca:attr_owners', [])
+        names.append(self.env.ref_context.get('aca:attr_owner'))
+        self.env.ref_context['aca:attr_owner'] = self.get_fullname()
+
+    def after_content(self):
+        if not self.can_own_attributes:
+            return
+        names: list[str] = self.env.ref_context['aca:attr_owners']
+        self.env.ref_context['aca:attr_owner'] = names.pop()
+
+    def add_target_and_index(
+        self, name: T, sig: str, signode: "desc_signature"
     ) -> None:
-        fullname = self.get_fullname(name)
+        fullname = self.get_fullname()
         node_id = make_id(self.env, self.state.document,
                           self.objtype, fullname)
         signode['ids'].append(node_id)
@@ -109,10 +128,8 @@ class BaseAcaciaObject(ObjectDescription[T]):
                 self.indexnode['entries'].append(entry)
 
 class AcaciaObject(BaseAcaciaObject[str]):
-    def add_target_and_index(
-        self, name: str, sig: str, signode: "desc_signature"
-    ) -> None:
-        self._add_target_and_index(name, sig, signode)
+    def get_partial_name(self, ob: str):
+        return ob
 
 def function_type(argument: Optional[str]) -> str:
     if argument in ('const', 'inline', None):
@@ -390,14 +407,14 @@ class AcaciaFunction(BaseAcaciaObject[FunctionSignature]):
     def get_index_name(self, fullname: str) -> Optional[str]:
         return _('%s (function)') % fullname
 
-    def handle_signature(self, sig: str, signode: "desc_signature") -> str:
+    def handle_signature(self, sig: str, signode: "desc_signature") \
+            -> FunctionSignature:
         try:
             parsed_sig = parse_function_signature(sig)
         except ValueError as e:
             logger.error(e.args[0], location=signode)
             raise
         logger.info(parsed_sig, location=signode)
-        signode['fullname'] = self.get_fullname(parsed_sig.name)
         func_type = self.options.get('type')
         prefix = '' if func_type is None else func_type + ' '
         signode += addnodes.desc_annotation('', prefix + 'def')
@@ -405,35 +422,91 @@ class AcaciaFunction(BaseAcaciaObject[FunctionSignature]):
         signature_to_nodes(parsed_sig, signode)
         return parsed_sig
 
-    def add_target_and_index(
-        self, name: FunctionSignature, sig: str, signode: "desc_signature"
-    ) -> None:
-        return self._add_target_and_index(name.name, sig, signode)
+    def get_partial_name(self, ob: FunctionSignature) -> str:
+        return ob.name
 
     def before_content(self) -> None:
+        super().before_content()
         sig = self.names[0]
         st = self.env.ref_context.setdefault('aca:param_stack', [])
         st.append([arg.name for arg in sig.args if arg.name])
 
     def after_content(self) -> None:
         self.env.ref_context['aca:param_stack'].pop()
+        super().after_content()
 
 class AcaciaModule(AcaciaObject):
+    can_own_attributes = False
+
     def get_index_name(self, fullname: str) -> Optional[str]:
         return _('%s (module)') % fullname
 
     def handle_signature(self, sig: str, signode: "desc_signature") -> str:
-        signode['fullname'] = sig.strip()
+        partial_name = sig.strip()
         signode += addnodes.desc_annotation('', 'module')
         signode += addnodes.desc_sig_space()
-        signode += addnodes.desc_name(sig, sig)
-        return sig
+        signode += addnodes.desc_name(sig, partial_name)
+        return partial_name
 
     def before_content(self) -> None:
+        super().before_content()
         push_module(self.names[0], self.env)
 
     def after_content(self) -> None:
         pop_module(self.env)
+        super().after_content()
+
+class AcaciaAttribute(AcaciaObject):
+    option_spec: "OptionSpec" = BaseAcaciaObject.option_spec.copy()
+    option_spec.update({
+        'static': directives.flag,
+    })
+
+    # We disallow attributes of attributes for now because that makes
+    # resolving roles like ``:attr:`` harder. Consider this::
+    #
+    #     This refers to :attr:`a` no doubt.
+    #
+    #     .. attribute:: a
+    #
+    #         Comment on ``a``.
+    #
+    #     .. attribute:: b
+    #
+    #         What should :attr:`this <a>` refer to?
+    #
+    #         .. attribute:: a
+    #
+    #             More comment...
+    #
+    can_own_attributes = False
+
+    def get_fullname(self) -> str:
+        attr_owner = self.env.ref_context.get('aca:attr_owner')
+        if attr_owner is None:
+            # We've logged this when handling signature
+            return '<error attribute>'
+        partial_name = self.get_partial_name(self.names[0])
+        sep = '.' if 'static' in self.options else '::'
+        return attr_owner + sep + partial_name
+
+    def get_index_name(self, fullname: str) -> Optional[str]:
+        return _('%s (attribute)') % fullname
+
+    def handle_signature(self, sig: str, signode: "desc_signature") -> str:
+        attr_owner = self.env.ref_context.get('aca:attr_owner')
+        if attr_owner is None:
+            logger.error(
+                "Attribute directives must be nested inside an object",
+                location=signode
+            )
+            return f'<error attribute {partial_name}>'
+        partial_name = sig.strip()
+        if 'static' in self.options:
+            signode += addnodes.desc_annotation('', 'static')
+            signode += addnodes.desc_sig_space()
+        signode += addnodes.desc_name(sig, partial_name)
+        return partial_name
 
 class AcaciaXRefRole(XRefRole):
     def process_link(
@@ -475,6 +548,16 @@ class AcaciaParamRole(SphinxRole):
         literal = nodes.literal(self.text, self.text)
         return [nodes.emphasis('', '', literal)], []
 
+class AcaciaAttributeRole(AcaciaXRefRole):
+    def process_link(
+        self, env: "BuildEnvironment", refnode: "Element",
+        has_explicit_title: bool, title: str, target: str
+    ) -> tuple[str, str]:
+        refnode['aca:attr_owner_attr'] = env.ref_context.get('aca:attr_owner')
+        return super().process_link(
+            env, refnode, has_explicit_title, title, target,
+        )
+
 class AcaciaDomain(Domain):
     name = 'aca'
     label = 'Acacia'
@@ -482,15 +565,18 @@ class AcaciaDomain(Domain):
     object_types = {
         'function': ObjType(_('function'), 'fn'),
         'module': ObjType(_('module'), 'mod'),
+        'attribute': ObjType(_('attribute'), 'attr'),
     }
     directives = {
         'function': AcaciaFunction,
         'module': AcaciaModule,
+        'attribute': AcaciaAttribute,
     }
     roles = {
         'fn': AcaciaFunctionRole(),
         'mod': AcaciaXRefRole(),
         'arg': AcaciaParamRole(),
+        'attr': AcaciaAttributeRole(),
     }
     initial_data = {
         'objects': {},
@@ -528,18 +614,25 @@ class AcaciaDomain(Domain):
         self, env: "BuildEnvironment", fromdocname: str, builder: "Builder",
         typ: str, target: str, node: "pending_xref", contnode: "Element",
     ) -> Optional["Element"]:
-        # Check prefixing '^' that indicates "no module context"
-        if no_module_context := target.startswith('^'):
+        # Check prefixing '^' that indicates "full name already given"
+        if already_fullname := target.startswith('^'):
             target = target[1:]
-        # Can refer to builtins
-        possible_targets = [target]
-        if (
-            not no_module_context
-            and (modname := node['aca:module_attr']) is not None
-        ):
-            # Can also refer to other objects in the same module; this
-            # overrides the builtins
-            possible_targets.insert(0, get_fullname(target, modname))
+        # Decide where to search for the given name
+        possible_targets = []
+        if not already_fullname:
+            if typ in ('attr',):
+                # Can refer to other attributes under the same attribute
+                # owner
+                attr_owner = node['aca:attr_owner_attr']
+                possible_targets.append(attr_owner + "::" + target)
+                possible_targets.append(attr_owner + "." + target)
+            if (modname := node['aca:module_attr']) is not None:
+                # Can refer to other objects in the same module
+                possible_targets.append(get_fullname(target, modname))
+        # Can search from toplevel (treat it as a full name) (least
+        # priority)
+        possible_targets.append(target)
+        # Start checking if the targets are valid
         for full_target in possible_targets:
             for objtype in self.objtypes_for_role(typ):
                 result = self.objects.get((objtype, full_target))
