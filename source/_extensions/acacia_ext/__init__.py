@@ -1,5 +1,5 @@
 import os
-from typing import TYPE_CHECKING, Any, Optional, Iterator, NamedTuple, TypeVar
+from typing import TYPE_CHECKING, Any, cast, Iterator, NamedTuple, TypeVar
 from sphinx.domains import Domain, ObjType
 from sphinx.directives import ObjectDescription
 from sphinx.locale import get_translation
@@ -60,15 +60,15 @@ class MCWikiRole(ReferenceRole):
         return [reference], []
 
 def push_module(name: str, env: "BuildEnvironment") -> None:
-    modules: list[str] = env.ref_context.setdefault('aca:modules', [])
+    modules: list[str | None] = env.ref_context.setdefault('aca:modules', [])
     modules.append(env.ref_context.get('aca:module'))
     env.ref_context['aca:module'] = name
 
 def pop_module(env: "BuildEnvironment") -> None:
-    modules: list[str] = env.ref_context['aca:modules']
+    modules: list[str | None] = env.ref_context['aca:modules']
     env.ref_context['aca:module'] = modules.pop()
 
-def get_fullname(name: str, modname: Optional[str]) -> str:
+def get_fullname(name: str, modname: str | None) -> str:
     return (modname + '.' if modname else '') + name
 
 T = TypeVar('T')
@@ -92,13 +92,13 @@ class BaseAcaciaObject(ObjectDescription[T]):
     def get_partial_name(self, ob: T) -> str:
         raise NotImplementedError
 
-    def get_index_name(self, fullname: str) -> Optional[str]:
+    def get_index_name(self, fullname: str) -> str | None:
         return None
 
     def before_content(self):
         if not self.can_own_attributes:
             return
-        names: list[str] = \
+        names: list[str | None] = \
             self.env.ref_context.setdefault('aca:attr_owners', [])
         names.append(self.env.ref_context.get('aca:attr_owner'))
         self.env.ref_context['aca:attr_owner'] = self.get_fullname()
@@ -118,7 +118,7 @@ class BaseAcaciaObject(ObjectDescription[T]):
         signode['ids'].append(node_id)
         self.state.document.note_explicit_target(signode)
 
-        domain: AcaciaDomain = self.env.get_domain('aca')
+        domain = cast(AcaciaDomain, self.env.get_domain('aca'))
         domain.note_object(self.objtype, fullname, node_id, location=signode)
 
         if 'no-index-entry' not in self.options:
@@ -131,7 +131,7 @@ class AcaciaObject(BaseAcaciaObject[str]):
     def get_partial_name(self, ob: str):
         return ob
 
-def function_type(argument: Optional[str]) -> str:
+def function_type(argument: str | None) -> str | None:
     if argument in ('const', 'inline', None):
         return argument
     raise ValueError('invalid function type: %r' % argument)
@@ -362,21 +362,21 @@ def token_to_node(token: Token) -> nodes.Node:
         case _:
             raise ValueError('unknown token type: %s' % token.type)
 
-def toklist_to_nodes(lst: list[Token], signode: "desc_signature"):
+def toklist_to_nodes(lst: list[Token], node: "Element"):
     for token in lst:
-        signode += token_to_node(token)
+        node += token_to_node(token)
 
-def prefix_to_nodes(lst: list[Token], signode: "desc_signature"):
+def prefix_to_nodes(lst: list[Token], node: "Element"):
     for pref in lst:
-        signode += token_to_node(pref)
+        node += token_to_node(pref)
         if pref.type == 'keyword':
-            signode += addnodes.desc_sig_space()
+            node += addnodes.desc_sig_space()
 
-def signature_to_nodes(sig: FunctionSignature, signode: "desc_signature"):
-    signode += addnodes.desc_name(sig.name, sig.name)
+def signature_to_nodes(sig: FunctionSignature, node: "Element"):
+    node += addnodes.desc_name(sig.name, sig.name)
     # Parameters
     paramlist = addnodes.desc_parameterlist()
-    signode += paramlist
+    node += paramlist
     for arg in sig.args:
         param = addnodes.desc_parameter()
         paramlist += param
@@ -394,9 +394,9 @@ def signature_to_nodes(sig: FunctionSignature, signode: "desc_signature"):
             toklist_to_nodes(arg.default, param)
     # Return
     if sig.ret:
-        signode += addnodes.desc_returns()
-        prefix_to_nodes(sig.ret_prefix, signode)
-        toklist_to_nodes(sig.ret, signode)
+        node += addnodes.desc_returns()
+        prefix_to_nodes(sig.ret_prefix, node)
+        toklist_to_nodes(sig.ret, node)
 
 class AcaciaFunction(BaseAcaciaObject[FunctionSignature]):
     option_spec: "OptionSpec" = BaseAcaciaObject.option_spec.copy()
@@ -404,7 +404,7 @@ class AcaciaFunction(BaseAcaciaObject[FunctionSignature]):
         'type': function_type,
     })
 
-    def get_index_name(self, fullname: str) -> Optional[str]:
+    def get_index_name(self, fullname: str) -> str | None:
         return _('%s (function)') % fullname
 
     def handle_signature(self, sig: str, signode: "desc_signature") \
@@ -438,7 +438,7 @@ class AcaciaFunction(BaseAcaciaObject[FunctionSignature]):
 class AcaciaModule(AcaciaObject):
     can_own_attributes = False
 
-    def get_index_name(self, fullname: str) -> Optional[str]:
+    def get_index_name(self, fullname: str) -> str | None:
         return _('%s (module)') % fullname
 
     def handle_signature(self, sig: str, signode: "desc_signature") -> str:
@@ -490,7 +490,7 @@ class AcaciaAttribute(AcaciaObject):
         sep = '.' if 'static' in self.options else '::'
         return attr_owner + sep + partial_name
 
-    def get_index_name(self, fullname: str) -> Optional[str]:
+    def get_index_name(self, fullname: str) -> str | None:
         return _('%s (attribute)') % fullname
 
     def handle_signature(self, sig: str, signode: "desc_signature") -> str:
@@ -613,7 +613,7 @@ class AcaciaDomain(Domain):
     def resolve_xref(
         self, env: "BuildEnvironment", fromdocname: str, builder: "Builder",
         typ: str, target: str, node: "pending_xref", contnode: "Element",
-    ) -> Optional["Element"]:
+    ) -> "Element | None":
         # Check prefixing '^' that indicates "full name already given"
         if already_fullname := target.startswith('^'):
             target = target[1:]
@@ -634,7 +634,9 @@ class AcaciaDomain(Domain):
         possible_targets.append(target)
         # Start checking if the targets are valid
         for full_target in possible_targets:
-            for objtype in self.objtypes_for_role(typ):
+            objtypes = self.objtypes_for_role(typ)
+            assert objtypes is not None
+            for objtype in objtypes:
                 result = self.objects.get((objtype, full_target))
                 if result is None:
                     continue
