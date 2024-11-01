@@ -83,17 +83,30 @@ class BaseAcaciaObject(ObjectDescription[T]):
 
     can_own_attributes: bool = True
 
-    def get_fullname(self) -> str:
+    def full_name_from_partial(self, partial_name: str) -> str:
         return get_fullname(
-            self.get_partial_name(self.names[0]),
+            partial_name,
             self.env.ref_context.get('aca:module')
         )
 
-    def get_partial_name(self, ob: T) -> str:
+    def partial_name_from_object(self, ob: T) -> str:
         raise NotImplementedError
 
     def get_index_name(self, fullname: str) -> str | None:
         return None
+
+    def transform_content_name(self, partial_name: str) -> str:
+        return partial_name
+
+    def my_handle_signature(self, sig: str, sig_node: "desc_signature") -> T:
+        raise NotImplementedError
+
+    def handle_signature(self, sig: str, sig_node: "desc_signature") -> T:
+        ob = self.my_handle_signature(sig, sig_node)
+        sig_node['aca:partial_name'] = partial_name = \
+            self.partial_name_from_object(ob)
+        sig_node['aca:full_name'] = self.full_name_from_partial(partial_name)
+        return ob
 
     def before_content(self):
         if not self.can_own_attributes:
@@ -101,7 +114,9 @@ class BaseAcaciaObject(ObjectDescription[T]):
         names: list[str | None] = \
             self.env.ref_context.setdefault('aca:attr_owners', [])
         names.append(self.env.ref_context.get('aca:attr_owner'))
-        self.env.ref_context['aca:attr_owner'] = self.get_fullname()
+        self.env.ref_context['aca:attr_owner'] = self.full_name_from_partial(
+            self.partial_name_from_object(self.names[0])
+        )
 
     def after_content(self):
         if not self.can_own_attributes:
@@ -112,7 +127,7 @@ class BaseAcaciaObject(ObjectDescription[T]):
     def add_target_and_index(
         self, name: T, sig: str, signode: "desc_signature"
     ) -> None:
-        fullname = self.get_fullname()
+        fullname = signode['aca:full_name']
         node_id = make_id(self.env, self.state.document,
                           self.objtype, fullname)
         signode['ids'].append(node_id)
@@ -127,8 +142,18 @@ class BaseAcaciaObject(ObjectDescription[T]):
                 entry = ('single', indexname, node_id, '', None)
                 self.indexnode['entries'].append(entry)
 
+    def _toc_entry_name(self, sig_node: "desc_signature") -> str:
+        if not sig_node.get('_toc_parts'):
+            return ''
+        return self.transform_content_name(sig_node['aca:partial_name'])
+
+    def _object_hierarchy_parts(self, sig_node: "desc_signature") \
+            -> tuple[str, ...]:
+        full_name: str = sig_node['aca:full_name']
+        return tuple(full_name.replace('::', '.').split('.'))
+
 class AcaciaObject(BaseAcaciaObject[str]):
-    def get_partial_name(self, ob: str):
+    def partial_name_from_object(self, ob: str):
         return ob
 
 def function_type(argument: str | None) -> str | None:
@@ -407,7 +432,10 @@ class AcaciaFunction(BaseAcaciaObject[FunctionSignature]):
     def get_index_name(self, fullname: str) -> str | None:
         return _('%s (function)') % fullname
 
-    def handle_signature(self, sig: str, signode: "desc_signature") \
+    def transform_content_name(self, partial_name: str) -> str:
+        return partial_name + '()'
+
+    def my_handle_signature(self, sig: str, signode: "desc_signature") \
             -> FunctionSignature:
         try:
             parsed_sig = parse_function_signature(sig)
@@ -422,7 +450,7 @@ class AcaciaFunction(BaseAcaciaObject[FunctionSignature]):
         signature_to_nodes(parsed_sig, signode)
         return parsed_sig
 
-    def get_partial_name(self, ob: FunctionSignature) -> str:
+    def partial_name_from_object(self, ob: FunctionSignature) -> str:
         return ob.name
 
     def before_content(self) -> None:
@@ -441,7 +469,7 @@ class AcaciaModule(AcaciaObject):
     def get_index_name(self, fullname: str) -> str | None:
         return _('%s (module)') % fullname
 
-    def handle_signature(self, sig: str, signode: "desc_signature") -> str:
+    def my_handle_signature(self, sig: str, signode: "desc_signature") -> str:
         partial_name = sig.strip()
         signode += addnodes.desc_annotation('', 'module')
         signode += addnodes.desc_sig_space()
@@ -481,19 +509,18 @@ class AcaciaAttribute(AcaciaObject):
     #
     can_own_attributes = False
 
-    def get_fullname(self) -> str:
+    def full_name_from_partial(self, partial_name: str) -> str:
         attr_owner = self.env.ref_context.get('aca:attr_owner')
         if attr_owner is None:
             # We've logged this when handling signature
             return '<error attribute>'
-        partial_name = self.get_partial_name(self.names[0])
         sep = '.' if 'static' in self.options else '::'
         return attr_owner + sep + partial_name
 
     def get_index_name(self, fullname: str) -> str | None:
         return _('%s (attribute)') % fullname
 
-    def handle_signature(self, sig: str, signode: "desc_signature") -> str:
+    def my_handle_signature(self, sig: str, signode: "desc_signature") -> str:
         attr_owner = self.env.ref_context.get('aca:attr_owner')
         partial_name = sig.strip()
         if attr_owner is None:
