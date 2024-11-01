@@ -495,13 +495,13 @@ class AcaciaAttribute(AcaciaObject):
 
     def handle_signature(self, sig: str, signode: "desc_signature") -> str:
         attr_owner = self.env.ref_context.get('aca:attr_owner')
+        partial_name = sig.strip()
         if attr_owner is None:
             logger.error(
                 "Attribute directives must be nested inside an object",
                 location=signode
             )
             return f'<error attribute {partial_name}>'
-        partial_name = sig.strip()
         if 'static' in self.options:
             signode += addnodes.desc_annotation('', 'static')
             signode += addnodes.desc_sig_space()
