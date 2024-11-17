@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-10-29 19:04-0400\n"
+"POT-Creation-Date: 2024-11-17 12:26-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_CN\n"
@@ -18,39 +18,48 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: source/_extensions/acacia_ext/__init__.py:57
+#: source/_extensions/acacia_ext/__init__.py:60
 #, python-format
 msgid "MCWiki: %s"
 msgstr "MC维基: %s"
 
-#: source/_extensions/acacia_ext/__init__.py:58
+#: source/_extensions/acacia_ext/__init__.py:61
 msgid "www"
 msgstr "zh"
 
-#: source/_extensions/acacia_ext/__init__.py:408
+#: source/_extensions/acacia_ext/__init__.py:449
 #, python-format
 msgid "%s (function)"
 msgstr "%s (函数)"
 
-#: source/_extensions/acacia_ext/__init__.py:442
+#: source/_extensions/acacia_ext/__init__.py:486
 #, python-format
 msgid "%s (module)"
 msgstr "%s (模块)"
 
-#: source/_extensions/acacia_ext/__init__.py:494
+#: source/_extensions/acacia_ext/__init__.py:540
 #, python-format
 msgid "%s (attribute)"
 msgstr "%s (属性)"
 
-#: source/_extensions/acacia_ext/__init__.py:566
+#: source/_extensions/acacia_ext/__init__.py:574
+#, python-format
+msgid "%s (type)"
+msgstr "%s (类型)"
+
+#: source/_extensions/acacia_ext/__init__.py:643
 msgid "function"
 msgstr "函数"
 
-#: source/_extensions/acacia_ext/__init__.py:567
+#: source/_extensions/acacia_ext/__init__.py:644
 msgid "module"
 msgstr "模块"
 
-#: source/_extensions/acacia_ext/__init__.py:568
+#: source/_extensions/acacia_ext/__init__.py:645
 msgid "attribute"
 msgstr "属性"
+
+#: source/_extensions/acacia_ext/__init__.py:646
+msgid "type"
+msgstr "类型"
 

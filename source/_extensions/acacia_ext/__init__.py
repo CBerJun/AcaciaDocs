@@ -567,6 +567,19 @@ class AcaciaAttribute(AcaciaObject):
         signode += addnodes.desc_name(sig, partial_name)
         return partial_name
 
+class AcaciaType(AcaciaObject):
+    attribute_owning = AttrOwning.INSTANCE_AND_STATIC
+
+    def get_index_name(self, fullname: str) -> str | None:
+        return _('%s (type)') % fullname
+
+    def my_handle_signature(self, sig: str, signode: "desc_signature") -> str:
+        partial_name = sig.strip()
+        signode += addnodes.desc_annotation('', 'type')
+        signode += addnodes.desc_sig_space()
+        signode += addnodes.desc_name(sig, partial_name)
+        return partial_name
+
 class AcaciaXRefRole(XRefRole):
     def process_link(
         self, env: "BuildEnvironment", refnode: "Element",
@@ -619,6 +632,9 @@ class AcaciaAttributeRole(AcaciaXRefRole):
             env, refnode, has_explicit_title, title, target,
         )
 
+class AcaciaTypeRole(AcaciaXRefRole):
+    pass
+
 class AcaciaDomain(Domain):
     name = 'aca'
     label = 'Acacia'
@@ -627,17 +643,20 @@ class AcaciaDomain(Domain):
         'function': ObjType(_('function'), 'fn'),
         'module': ObjType(_('module'), 'mod'),
         'attribute': ObjType(_('attribute'), 'attr'),
+        'type': ObjType(_('type'), 'type'),
     }
     directives = {
         'function': AcaciaFunction,
         'module': AcaciaModule,
         'attribute': AcaciaAttribute,
+        'type': AcaciaType,
     }
     roles = {
         'fn': AcaciaFunctionRole(),
         'mod': AcaciaXRefRole(),
         'arg': AcaciaParamRole(),
         'attr': AcaciaAttributeRole(),
+        'type': AcaciaTypeRole(),
     }
     initial_data = {
         'objects': {},
