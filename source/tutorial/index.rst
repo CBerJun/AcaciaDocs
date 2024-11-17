@@ -10,5 +10,5 @@ Acacia 的使用教程——从这里开始！
     但有一定基础更好理解～
 
 .. toctree::
-    whatisit.rst
+    what_is_it.rst
 

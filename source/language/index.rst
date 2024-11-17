@@ -6,6 +6,6 @@
 .. toctree::
     :maxdepth: 2
 
-    intro.rst
-    parser.rst
+    introduction.rst
+    lexical_analysis.rst
     compnrun.rst
