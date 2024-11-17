@@ -1,5 +1,8 @@
 import os
-from typing import TYPE_CHECKING, Any, cast, Iterator, NamedTuple, TypeVar
+from typing import (
+    TYPE_CHECKING, Any, cast, Iterator, NamedTuple, TypeVar, TypeAlias
+)
+from enum import Enum
 from sphinx.domains import Domain, ObjType
 from sphinx.directives import ObjectDescription
 from sphinx.locale import get_translation
@@ -73,6 +76,17 @@ def get_fullname(name: str, modname: str | None) -> str:
 
 T = TypeVar('T')
 
+class AttrOwning(Enum):
+    NO_ATTR = 0
+    ALL_STATIC = 1
+    INSTANCE_AND_STATIC = 2
+
+class AttrOwner(NamedTuple):
+    fullname: str
+    type: AttrOwning
+
+AttrOwnerStack: TypeAlias = list[AttrOwner | None]
+
 class BaseAcaciaObject(ObjectDescription[T]):
     option_spec: "OptionSpec" = {
         'no-index': directives.flag,
@@ -81,7 +95,7 @@ class BaseAcaciaObject(ObjectDescription[T]):
         'no-typesetting': directives.flag,
     }
 
-    can_own_attributes: bool = True
+    attribute_owning: AttrOwning = AttrOwning.ALL_STATIC
 
     def full_name_from_partial(self, partial_name: str) -> str:
         return get_fullname(
@@ -109,19 +123,21 @@ class BaseAcaciaObject(ObjectDescription[T]):
         return ob
 
     def before_content(self):
-        if not self.can_own_attributes:
+        if self.attribute_owning is AttrOwning.NO_ATTR:
             return
-        names: list[str | None] = \
+        names: AttrOwnerStack = \
             self.env.ref_context.setdefault('aca:attr_owners', [])
         names.append(self.env.ref_context.get('aca:attr_owner'))
-        self.env.ref_context['aca:attr_owner'] = self.full_name_from_partial(
+        fullname = self.full_name_from_partial(
             self.partial_name_from_object(self.names[0])
         )
+        self.env.ref_context['aca:attr_owner'] = \
+            AttrOwner(fullname, self.attribute_owning)
 
     def after_content(self):
-        if not self.can_own_attributes:
+        if self.attribute_owning is AttrOwning.NO_ATTR:
             return
-        names: list[str] = self.env.ref_context['aca:attr_owners']
+        names: AttrOwnerStack = self.env.ref_context['aca:attr_owners']
         self.env.ref_context['aca:attr_owner'] = names.pop()
 
     def add_target_and_index(
@@ -464,7 +480,7 @@ class AcaciaFunction(BaseAcaciaObject[FunctionSignature]):
         super().after_content()
 
 class AcaciaModule(AcaciaObject):
-    can_own_attributes = False
+    attribute_owning = AttrOwning.NO_ATTR
 
     def get_index_name(self, fullname: str) -> str | None:
         return _('%s (module)') % fullname
@@ -507,21 +523,25 @@ class AcaciaAttribute(AcaciaObject):
     #
     #             More comment...
     #
-    can_own_attributes = False
+    attribute_owning = AttrOwning.NO_ATTR
 
     def full_name_from_partial(self, partial_name: str) -> str:
-        attr_owner = self.env.ref_context.get('aca:attr_owner')
+        attr_owner: AttrOwner | None = \
+            self.env.ref_context.get('aca:attr_owner')
         if attr_owner is None:
             # We've logged this when handling signature
             return '<error attribute>'
-        sep = '.' if 'static' in self.options else '::'
-        return attr_owner + sep + partial_name
+        static = ('static' in self.options
+                  or attr_owner.type is AttrOwning.ALL_STATIC)
+        sep = '.' if static else '::'
+        return attr_owner.fullname + sep + partial_name
 
     def get_index_name(self, fullname: str) -> str | None:
         return _('%s (attribute)') % fullname
 
     def my_handle_signature(self, sig: str, signode: "desc_signature") -> str:
-        attr_owner = self.env.ref_context.get('aca:attr_owner')
+        attr_owner: AttrOwner | None = \
+            self.env.ref_context.get('aca:attr_owner')
         partial_name = sig.strip()
         if attr_owner is None:
             logger.error(
@@ -529,9 +549,21 @@ class AcaciaAttribute(AcaciaObject):
                 location=signode
             )
             return f'<error attribute {partial_name}>'
-        if 'static' in self.options:
-            signode += addnodes.desc_annotation('', 'static')
-            signode += addnodes.desc_sig_space()
+        all_static = attr_owner.type is AttrOwning.ALL_STATIC
+        explicit_static = 'static' in self.options
+        if explicit_static:
+            if all_static:
+                logger.warning(
+                    "No need to specify :static: as the owner only accepts "
+                    "static attributes",
+                    location=signode
+                )
+            else:
+                assert attr_owner.type is AttrOwning.INSTANCE_AND_STATIC
+                signode += addnodes.desc_annotation('', 'static')
+                signode += addnodes.desc_sig_space()
+        if all_static:
+            signode += addnodes.desc_sig_punctuation('', '.')
         signode += addnodes.desc_name(sig, partial_name)
         return partial_name
 
@@ -580,7 +612,9 @@ class AcaciaAttributeRole(AcaciaXRefRole):
         self, env: "BuildEnvironment", refnode: "Element",
         has_explicit_title: bool, title: str, target: str
     ) -> tuple[str, str]:
-        refnode['aca:attr_owner_attr'] = env.ref_context.get('aca:attr_owner')
+        attr_owner: AttrOwner | None = env.ref_context.get('aca:attr_owner')
+        refnode['aca:attr_owner_fullname'] = \
+            None if attr_owner is None else attr_owner.fullname
         return super().process_link(
             env, refnode, has_explicit_title, title, target,
         )
@@ -647,12 +681,11 @@ class AcaciaDomain(Domain):
         # Decide where to search for the given name
         possible_targets = []
         if not already_fullname:
-            if typ in ('attr',):
+            if typ in ('attr',) and (aon := node['aca:attr_owner_fullname']):
                 # Can refer to other attributes under the same attribute
                 # owner
-                attr_owner = node['aca:attr_owner_attr']
-                possible_targets.append(attr_owner + "::" + target)
-                possible_targets.append(attr_owner + "." + target)
+                possible_targets.append(aon + "::" + target)
+                possible_targets.append(aon + "." + target)
             if (modname := node['aca:module_attr']) is not None:
                 # Can refer to other objects in the same module
                 possible_targets.append(get_fullname(target, modname))
